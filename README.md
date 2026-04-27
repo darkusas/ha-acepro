@@ -56,7 +56,7 @@ Click **Configure** on the ACEPRO integration card and choose **Add entity**.
 | Field | Value |
 |---|---|
 | Name | `Living room temperature` |
-| Host | `192.168.1.50` |
+| Host | `Main_module` |
 | IOID | `10307` |
 | Platform | `sensor` |
 | Device class | `temperature` |
@@ -68,7 +68,7 @@ Click **Configure** on the ACEPRO integration card and choose **Add entity**.
 | Field | Value |
 |---|---|
 | Name | `Garden light` |
-| Host | `192.168.1.51` |
+| Host | `Ia_Modulis` |
 | IOID | `10308` |
 | Platform | `switch` |
 | ON value | `1.0` |

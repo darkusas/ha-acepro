@@ -33,7 +33,7 @@
         "title": "Add Entity – General",
         "data": {
           "name": "Name",
-          "host": "Module host (IPv4 address or hostname)",
+          "host": "Module name (e.g. Main_module)",
           "ioid": "IOID",
           "platform": "Platform (sensor / switch)"
         }
@@ -64,7 +64,7 @@
       }
     },
     "error": {
-      "invalid_host": "Invalid host address.",
+      "invalid_host": "Module name must not be empty and must contain only ASCII characters.",
       "invalid_ioid": "IOID must be a 32-bit unsigned integer (0 – 4294967295)."
     }
   }

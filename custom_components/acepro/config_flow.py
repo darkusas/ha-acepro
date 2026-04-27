@@ -114,6 +114,18 @@ def _validate_broadcast(address: str) -> str:
     return address
 
 
+def _validate_host(name: str) -> str:
+    """Raise vol.Invalid if *name* is empty or contains non-ASCII characters."""
+    name = name.strip()
+    if not name:
+        raise vol.Invalid("Module name must not be empty")
+    try:
+        name.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise vol.Invalid("Module name must contain only ASCII characters") from exc
+    return name
+
+
 def _validate_port(port: int) -> int:
     if not 1 <= port <= 65535:
         raise vol.Invalid("Port must be between 1 and 65535")
@@ -219,9 +231,10 @@ class AceproOptionsFlow(OptionsFlow):
 
         if user_input is not None:
             try:
-                _validate_broadcast(user_input[CONF_HOST])
+                host = _validate_host(user_input[CONF_HOST])
             except vol.Invalid:
                 errors[CONF_HOST] = "invalid_host"
+                host = user_input[CONF_HOST]
 
             ioid = int(user_input[CONF_IOID])
             if not 0 <= ioid <= 0xFFFFFFFF:
@@ -231,7 +244,7 @@ class AceproOptionsFlow(OptionsFlow):
                 self._pending_entity = {
                     "unique_id": str(uuid.uuid4()),
                     "name": user_input["name"],
-                    CONF_HOST: user_input[CONF_HOST],
+                    CONF_HOST: host,
                     CONF_IOID: ioid,
                     CONF_PLATFORM: user_input[CONF_PLATFORM],
                 }
