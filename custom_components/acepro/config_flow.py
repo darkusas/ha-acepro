@@ -224,7 +224,7 @@ class AceproOptionsFlow(OptionsFlow):
                 errors[CONF_HOST] = "invalid_host"
 
             ioid = int(user_input[CONF_IOID])
-            if ioid < 0:
+            if not 0 <= ioid <= 0xFFFFFFFF:
                 errors[CONF_IOID] = "invalid_ioid"
 
             if not errors:
@@ -247,7 +247,7 @@ class AceproOptionsFlow(OptionsFlow):
                 vol.Required(CONF_HOST): TextSelector(),
                 vol.Required(CONF_IOID, default=0): NumberSelector(
                     NumberSelectorConfig(
-                        min=0, max=65535, step=1, mode=NumberSelectorMode.BOX
+                        min=0, max=4294967295, step=1, mode=NumberSelectorMode.BOX
                     )
                 ),
                 vol.Required(CONF_PLATFORM, default=PLATFORM_SENSOR): SelectSelector(
