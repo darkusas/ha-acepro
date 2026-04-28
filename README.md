@@ -118,6 +118,32 @@ to `0xFFFFFFFF`.  The same algorithm is implemented in `acepro_client.py`
 | Entity stuck in *unavailable* after 60 s | No `OnChange` packet received; verify the broadcast address and port match the module configuration |
 | Switch does not respond | Ensure the module's IOID is writable; check firewall / routing rules |
 
+### Template sensor example (`configuration.yaml`)
+
+If you want to expose the ACEPRO temperature reading as a `template` sensor
+(for example to round the value or to feed it into automations), add the
+following to your `configuration.yaml`:
+
+```yaml
+template:
+  - sensor:
+      - name: "Living room temperature"
+        unique_id: acepro_living_room_temperature
+        device_class: temperature
+        unit_of_measurement: "°C"
+        state_class: measurement
+        state: >
+          {{ states('sensor.living_room_temperature') | float(0) | round(1) }}
+        availability: >
+          {{ states('sensor.living_room_temperature') not in
+             ['unavailable', 'unknown', 'none'] }}
+```
+
+Replace `sensor.living_room_temperature` with the actual entity ID of your
+ACEPRO sensor (visible in **Settings → Devices & Services → ACEPRO → entities**).
+
+---
+
 Enable debug logging by adding to `configuration.yaml`:
 
 ```yaml
