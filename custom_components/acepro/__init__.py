@@ -3,14 +3,83 @@ from __future__ import annotations
 
 import logging
 
-from homeassistant.config_entries import ConfigEntry
+import voluptuous as vol
+
+from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import CONF_PORT
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import config_validation as cv
 
 from .acepro_client import AceproClient
-from .const import CONF_BROADCAST_ADDRESS, DOMAIN, PLATFORMS
+from .const import (
+    CONF_BROADCAST_ADDRESS,
+    CONF_DEVICE_CLASS,
+    CONF_ENTITIES,
+    CONF_HOST,
+    CONF_IOID,
+    CONF_OFF_VALUE,
+    CONF_ON_VALUE,
+    CONF_PLATFORM,
+    CONF_STATE_CLASS,
+    CONF_UNIT_OF_MEASUREMENT,
+    DEFAULT_BROADCAST,
+    DEFAULT_OFF_VALUE,
+    DEFAULT_ON_VALUE,
+    DEFAULT_PORT,
+    DOMAIN,
+    PLATFORM_SENSOR,
+    PLATFORM_SWITCH,
+    PLATFORMS,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
+_ENTITY_SCHEMA = vol.Schema(
+    {
+        vol.Required("name"): cv.string,
+        vol.Required(CONF_HOST): cv.string,
+        vol.Required(CONF_IOID): vol.All(
+            vol.Coerce(int), vol.Range(min=0, max=0xFFFFFFFF)
+        ),
+        vol.Required(CONF_PLATFORM): vol.In([PLATFORM_SENSOR, PLATFORM_SWITCH]),
+        vol.Optional(CONF_DEVICE_CLASS): cv.string,
+        vol.Optional(CONF_UNIT_OF_MEASUREMENT): cv.string,
+        vol.Optional(CONF_STATE_CLASS): cv.string,
+        vol.Optional(CONF_ON_VALUE, default=DEFAULT_ON_VALUE): vol.Coerce(float),
+        vol.Optional(CONF_OFF_VALUE, default=DEFAULT_OFF_VALUE): vol.Coerce(float),
+    }
+)
+
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.Schema(
+            {
+                vol.Required(
+                    CONF_BROADCAST_ADDRESS, default=DEFAULT_BROADCAST
+                ): cv.string,
+                vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
+                vol.Optional(CONF_ENTITIES, default=[]): vol.All(
+                    cv.ensure_list, [_ENTITY_SCHEMA]
+                ),
+            }
+        )
+    },
+    extra=vol.ALLOW_EXTRA,
+)
+
+
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
+    """Import ACEPRO configuration from configuration.yaml."""
+    if DOMAIN not in config:
+        return True
+    hass.async_create_task(
+        hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": SOURCE_IMPORT},
+            data=config[DOMAIN],
+        )
+    )
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

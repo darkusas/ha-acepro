@@ -141,8 +141,7 @@ class AceproConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
-    async def async_step_user(
-        self, user_input: dict[str, Any] | None = None
+    async def async_step_user(        self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
@@ -185,6 +184,46 @@ class AceproConfigFlow(ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry: ConfigEntry) -> "AceproOptionsFlow":
         """Return the options flow handler."""
         return AceproOptionsFlow(config_entry)
+
+    async def async_step_import(
+        self, import_data: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Handle import from configuration.yaml."""
+        broadcast = import_data[CONF_BROADCAST_ADDRESS]
+        port = int(import_data.get(CONF_PORT, DEFAULT_PORT))
+        unique_id = f"{broadcast}:{port}"
+
+        entities: list[dict[str, Any]] = []
+        for entity_cfg in import_data.get(CONF_ENTITIES, []):
+            host = str(entity_cfg[CONF_HOST]).strip()
+            ioid = int(entity_cfg[CONF_IOID])
+            ent: dict[str, Any] = {
+                "unique_id": f"yaml_{host}_{ioid}",
+                "name": str(entity_cfg["name"]),
+                CONF_HOST: host,
+                CONF_IOID: ioid,
+                CONF_PLATFORM: entity_cfg[CONF_PLATFORM],
+                CONF_DEVICE_CLASS: entity_cfg.get(CONF_DEVICE_CLASS, ""),
+                CONF_UNIT_OF_MEASUREMENT: entity_cfg.get(CONF_UNIT_OF_MEASUREMENT, ""),
+                CONF_STATE_CLASS: entity_cfg.get(CONF_STATE_CLASS, ""),
+                CONF_ON_VALUE: float(entity_cfg.get(CONF_ON_VALUE, DEFAULT_ON_VALUE)),
+                CONF_OFF_VALUE: float(entity_cfg.get(CONF_OFF_VALUE, DEFAULT_OFF_VALUE)),
+            }
+            entities.append(ent)
+
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            if entry.unique_id == unique_id:
+                self.hass.config_entries.async_update_entry(
+                    entry, options={CONF_ENTITIES: entities}
+                )
+                return self.async_abort(reason="already_configured")
+
+        await self.async_set_unique_id(unique_id)
+        return self.async_create_entry(
+            title=f"ACEPRO {broadcast}:{port}",
+            data={CONF_BROADCAST_ADDRESS: broadcast, CONF_PORT: port},
+            options={CONF_ENTITIES: entities},
+        )
 
 
 # ---------------------------------------------------------------------------
