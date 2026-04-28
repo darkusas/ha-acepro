@@ -31,16 +31,22 @@ from .const import (
     CONF_ENTITIES,
     CONF_HOST,
     CONF_IOID,
+    CONF_MAX,
+    CONF_MIN,
     CONF_OFF_VALUE,
     CONF_ON_VALUE,
+    CONF_OPTIONS,
     CONF_PLATFORM,
     CONF_STATE_CLASS,
+    CONF_STEP,
     CONF_UNIT_OF_MEASUREMENT,
     DEFAULT_BROADCAST,
     DEFAULT_OFF_VALUE,
     DEFAULT_ON_VALUE,
     DEFAULT_PORT,
     DOMAIN,
+    PLATFORM_NUMBER,
+    PLATFORM_SELECT,
     PLATFORM_SENSOR,
     PLATFORM_SWITCH,
 )
@@ -198,18 +204,29 @@ class AceproConfigFlow(ConfigFlow, domain=DOMAIN):
         for entity_cfg in import_data.get(CONF_ENTITIES, []):
             host = str(entity_cfg[CONF_HOST]).strip()
             ioid = int(entity_cfg[CONF_IOID])
+            platform = entity_cfg[CONF_PLATFORM]
             ent: dict[str, Any] = {
                 "unique_id": f"yaml_{host}_{ioid}",
                 "name": str(entity_cfg["name"]),
                 CONF_HOST: host,
                 CONF_IOID: ioid,
-                CONF_PLATFORM: entity_cfg[CONF_PLATFORM],
+                CONF_PLATFORM: platform,
                 CONF_DEVICE_CLASS: entity_cfg.get(CONF_DEVICE_CLASS, ""),
                 CONF_UNIT_OF_MEASUREMENT: entity_cfg.get(CONF_UNIT_OF_MEASUREMENT, ""),
                 CONF_STATE_CLASS: entity_cfg.get(CONF_STATE_CLASS, ""),
                 CONF_ON_VALUE: float(entity_cfg.get(CONF_ON_VALUE, DEFAULT_ON_VALUE)),
                 CONF_OFF_VALUE: float(entity_cfg.get(CONF_OFF_VALUE, DEFAULT_OFF_VALUE)),
+                CONF_OPTIONS: {
+                    str(k): float(v)
+                    for k, v in entity_cfg.get(CONF_OPTIONS, {}).items()
+                },
             }
+            if entity_cfg.get(CONF_MIN) is not None:
+                ent[CONF_MIN] = float(entity_cfg[CONF_MIN])
+            if entity_cfg.get(CONF_MAX) is not None:
+                ent[CONF_MAX] = float(entity_cfg[CONF_MAX])
+            if entity_cfg.get(CONF_STEP) is not None:
+                ent[CONF_STEP] = float(entity_cfg[CONF_STEP])
             entities.append(ent)
 
         for entry in self.hass.config_entries.async_entries(DOMAIN):
@@ -293,6 +310,10 @@ class AceproOptionsFlow(OptionsFlow):
                     return await self.async_step_add_sensor()
                 if platform == PLATFORM_SWITCH:
                     return await self.async_step_add_switch()
+                if platform == PLATFORM_SELECT:
+                    return await self.async_step_add_select()
+                if platform == PLATFORM_NUMBER:
+                    return await self.async_step_add_number()
 
         schema = vol.Schema(
             {
@@ -305,7 +326,7 @@ class AceproOptionsFlow(OptionsFlow):
                 ),
                 vol.Required(CONF_PLATFORM, default=PLATFORM_SENSOR): SelectSelector(
                     SelectSelectorConfig(
-                        options=[PLATFORM_SENSOR, PLATFORM_SWITCH],
+                        options=[PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER],
                         mode=SelectSelectorMode.LIST,
                     )
                 ),
@@ -377,6 +398,74 @@ class AceproOptionsFlow(OptionsFlow):
             }
         )
         return self.async_show_form(step_id="add_switch", data_schema=schema)
+
+    async def async_step_add_select(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Collect select-specific settings (options as 'label:value' lines)."""
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            raw = user_input.get("options_text", "")
+            parsed: dict[str, float] = {}
+            for line in raw.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                if ":" not in line:
+                    errors["options_text"] = "invalid_options"
+                    break
+                label, _, val = line.partition(":")
+                try:
+                    parsed[label.strip()] = float(val.strip())
+                except ValueError:
+                    errors["options_text"] = "invalid_options"
+                    break
+            if not errors:
+                self._pending_entity[CONF_OPTIONS] = parsed
+                self._entities.append(self._pending_entity)
+                self._pending_entity = {}
+                return await self.async_step_init()
+
+        schema = vol.Schema(
+            {
+                vol.Required("options_text", default=""): TextSelector(),
+            }
+        )
+        return self.async_show_form(
+            step_id="add_select", data_schema=schema, errors=errors
+        )
+
+    async def async_step_add_number(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Collect number-specific settings."""
+        if user_input is not None:
+            self._pending_entity[CONF_MIN] = float(user_input.get(CONF_MIN, 0))
+            self._pending_entity[CONF_MAX] = float(user_input.get(CONF_MAX, 100))
+            self._pending_entity[CONF_STEP] = float(user_input.get(CONF_STEP, 1))
+            uom = user_input.get(CONF_UNIT_OF_MEASUREMENT, "")
+            if uom:
+                self._pending_entity[CONF_UNIT_OF_MEASUREMENT] = uom
+            self._entities.append(self._pending_entity)
+            self._pending_entity = {}
+            return await self.async_step_init()
+
+        schema = vol.Schema(
+            {
+                vol.Optional(CONF_MIN, default=0): NumberSelector(
+                    NumberSelectorConfig(mode=NumberSelectorMode.BOX, step=0.1)
+                ),
+                vol.Optional(CONF_MAX, default=100): NumberSelector(
+                    NumberSelectorConfig(mode=NumberSelectorMode.BOX, step=0.1)
+                ),
+                vol.Optional(CONF_STEP, default=1): NumberSelector(
+                    NumberSelectorConfig(mode=NumberSelectorMode.BOX, step=0.01, min=0.01)
+                ),
+                vol.Optional(CONF_UNIT_OF_MEASUREMENT, default=""): TextSelector(),
+            }
+        )
+        return self.async_show_form(step_id="add_number", data_schema=schema)
 
     # --- Remove entity ----------------------------------------------------
 

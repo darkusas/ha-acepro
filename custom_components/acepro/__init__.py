@@ -17,16 +17,22 @@ from .const import (
     CONF_ENTITIES,
     CONF_HOST,
     CONF_IOID,
+    CONF_MAX,
+    CONF_MIN,
     CONF_OFF_VALUE,
     CONF_ON_VALUE,
+    CONF_OPTIONS,
     CONF_PLATFORM,
     CONF_STATE_CLASS,
+    CONF_STEP,
     CONF_UNIT_OF_MEASUREMENT,
     DEFAULT_BROADCAST,
     DEFAULT_OFF_VALUE,
     DEFAULT_ON_VALUE,
     DEFAULT_PORT,
     DOMAIN,
+    PLATFORM_NUMBER,
+    PLATFORM_SELECT,
     PLATFORM_SENSOR,
     PLATFORM_SWITCH,
     PLATFORMS,
@@ -41,12 +47,20 @@ _ENTITY_SCHEMA = vol.Schema(
         vol.Required(CONF_IOID): vol.All(
             vol.Coerce(int), vol.Range(min=0, max=0xFFFFFFFF)
         ),
-        vol.Required(CONF_PLATFORM): vol.In([PLATFORM_SENSOR, PLATFORM_SWITCH]),
+        vol.Required(CONF_PLATFORM): vol.In(
+            [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER]
+        ),
         vol.Optional(CONF_DEVICE_CLASS): cv.string,
         vol.Optional(CONF_UNIT_OF_MEASUREMENT): cv.string,
         vol.Optional(CONF_STATE_CLASS): cv.string,
         vol.Optional(CONF_ON_VALUE, default=DEFAULT_ON_VALUE): vol.Coerce(float),
         vol.Optional(CONF_OFF_VALUE, default=DEFAULT_OFF_VALUE): vol.Coerce(float),
+        vol.Optional(CONF_OPTIONS, default={}): vol.Schema(
+            {cv.string: vol.Coerce(float)}
+        ),
+        vol.Optional(CONF_MIN): vol.Coerce(float),
+        vol.Optional(CONF_MAX): vol.Coerce(float),
+        vol.Optional(CONF_STEP): vol.Coerce(float),
     }
 )
 

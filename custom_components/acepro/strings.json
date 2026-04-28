@@ -35,7 +35,7 @@
           "name": "Name",
           "host": "Module name (e.g. Main_module)",
           "ioid": "IOID",
-          "platform": "Platform (sensor / switch)"
+          "platform": "Platform (sensor / switch / select / number)"
         }
       },
       "add_sensor": {
@@ -53,6 +53,22 @@
           "off_value": "Value sent when turning OFF"
         }
       },
+      "add_select": {
+        "title": "Add Select – Options",
+        "description": "Enter one option per line in the format  label: value  (e.g. 'normal: 1').",
+        "data": {
+          "options_text": "Options (one per line, format: label: value)"
+        }
+      },
+      "add_number": {
+        "title": "Add Number – Range",
+        "data": {
+          "min": "Minimum value",
+          "max": "Maximum value",
+          "step": "Step size",
+          "unit_of_measurement": "Unit of measurement (optional)"
+        }
+      },
       "remove_entity": {
         "title": "Remove Entities",
         "data": {
@@ -65,7 +81,8 @@
     },
     "error": {
       "invalid_host": "Module name must not be empty and must contain only ASCII characters.",
-      "invalid_ioid": "IOID must be a 32-bit unsigned integer (0 – 4294967295)."
+      "invalid_ioid": "IOID must be a 32-bit unsigned integer (0 – 4294967295).",
+      "invalid_options": "Each line must be in the format  label: value  where value is a number."
     }
   }
 }
