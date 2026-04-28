@@ -224,22 +224,16 @@ class AceproClient:
         if hasattr(socket, "SO_REUSEPORT"):
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        # Mirror acepro-net.js: bind to broadcast address + port
-        try:
-            sock.bind((self._broadcast_address, self._port))
-        except OSError:
-            _LOGGER.warning(
-                "ACEPRO: could not bind to %s, falling back to 0.0.0.0",
-                self._broadcast_address,
-            )
-            sock.bind(("", self._port))
+        # Bind to all interfaces so we receive broadcast replies on any NIC
+        sock.bind(("0.0.0.0", self._port))
 
         protocol = _AceproProtocol(self)
         self._transport, _ = await loop.create_datagram_endpoint(
             lambda: protocol, sock=sock
         )
         _LOGGER.info(
-            "ACEPRO UDP listening on %s:%s", self._broadcast_address, self._port
+            "ACEPRO UDP bound to 0.0.0.0:%s, broadcasting to %s",
+            self._port, self._broadcast_address,
         )
         self._timer_task = asyncio.create_task(self._timer_loop())
 
