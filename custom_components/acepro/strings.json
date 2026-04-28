@@ -1,0 +1,71 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "ACEPRO Network Settings",
+        "description": "Configure the UDP broadcast address and port used by your ACEPRO modules.",
+        "data": {
+          "broadcast_address": "Broadcast address (e.g. 192.168.1.255)",
+          "port": "UDP port"
+        }
+      }
+    },
+    "error": {
+      "invalid_broadcast": "Invalid IPv4 address.",
+      "invalid_port": "Port must be between 1 and 65535.",
+      "cannot_connect": "Unable to start UDP listener."
+    },
+    "abort": {
+      "already_configured": "This broadcast address and port combination is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Manage Entities",
+        "menu_options": {
+          "add_entity": "Add entity",
+          "remove_entity": "Remove entity",
+          "finish": "Save and close"
+        }
+      },
+      "add_entity": {
+        "title": "Add Entity – General",
+        "data": {
+          "name": "Name",
+          "host": "Module name (e.g. Main_module)",
+          "ioid": "IOID",
+          "platform": "Platform (sensor / switch)"
+        }
+      },
+      "add_sensor": {
+        "title": "Add Sensor – Details",
+        "data": {
+          "device_class": "Device class (optional)",
+          "unit_of_measurement": "Unit of measurement (optional)",
+          "state_class": "State class (optional)"
+        }
+      },
+      "add_switch": {
+        "title": "Add Switch – Details",
+        "data": {
+          "on_value": "Value sent when turning ON",
+          "off_value": "Value sent when turning OFF"
+        }
+      },
+      "remove_entity": {
+        "title": "Remove Entities",
+        "data": {
+          "entities_to_remove": "Select entities to remove"
+        }
+      },
+      "finish": {
+        "title": "Save and Close"
+      }
+    },
+    "error": {
+      "invalid_host": "Module name must not be empty and must contain only ASCII characters.",
+      "invalid_ioid": "IOID must be a 32-bit unsigned integer (0 – 4294967295)."
+    }
+  }
+}
