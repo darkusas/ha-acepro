@@ -35,6 +35,10 @@ CONF_UNIT_OF_MEASUREMENT = "unit_of_measurement"
 CONF_STATE_CLASS = "state_class"
 CONF_ON_VALUE = "on_value"
 CONF_OFF_VALUE = "off_value"
+CONF_OPTIONS = "options"          # select: {label: float_value}
+CONF_MIN = "min"                  # number: minimum value
+CONF_MAX = "max"                  # number: maximum value
+CONF_STEP = "step"                # number: step size
 
 # ---------------------------------------------------------------------------
 # Defaults
@@ -49,7 +53,9 @@ DEFAULT_OFF_VALUE = 0.0
 # ---------------------------------------------------------------------------
 PLATFORM_SENSOR = "sensor"
 PLATFORM_SWITCH = "switch"
-PLATFORMS = [PLATFORM_SENSOR, PLATFORM_SWITCH]
+PLATFORM_SELECT = "select"
+PLATFORM_NUMBER = "number"
+PLATFORMS = [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER]
 
 # ---------------------------------------------------------------------------
 # State-machine timing (seconds, mirrored from acepro-net.js)
