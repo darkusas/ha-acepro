@@ -72,6 +72,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Import ACEPRO configuration from configuration.yaml."""
     if DOMAIN not in config:
         return True
+    # Schedule the import flow as a task so it runs after the current
+    # setup pass completes.  This is the standard HA pattern for YAML
+    # imports; any exception is reported by the event-loop exception handler.
     hass.async_create_task(
         hass.config_entries.flow.async_init(
             DOMAIN,
