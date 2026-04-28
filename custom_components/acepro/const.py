@@ -39,7 +39,7 @@ CONF_OFF_VALUE = "off_value"
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
-DEFAULT_PORT = 6000
+DEFAULT_PORT = 31456
 DEFAULT_BROADCAST = "192.168.1.255"
 DEFAULT_ON_VALUE = 1.0
 DEFAULT_OFF_VALUE = 0.0
