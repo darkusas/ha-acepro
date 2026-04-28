@@ -46,7 +46,7 @@ Enter:
 | Field | Example | Description |
 |---|---|---|
 | Broadcast address | `192.168.1.255` | IPv4 broadcast address of the LAN segment where the ACEPRO modules reside |
-| UDP port | `6000` | Port used by the aceBUS protocol |
+| UDP port | `31456` | Port used by the aceBUS protocol |
 
 ### 2 – Add entities
 
@@ -89,7 +89,7 @@ create (or update) the integration entry on every restart.
 ```yaml
 acepro:
   broadcast_address: "192.168.1.255"
-  port: 6000                            # optional, default 6000
+  port: 31456                           # optional, default 31456
   entities:
     - name: "Living room temperature"
       host: Main_module
