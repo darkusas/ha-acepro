@@ -223,6 +223,28 @@ class AceproClient:
         self._transport: asyncio.DatagramTransport | None = None
         self._timer_task: asyncio.Task | None = None
 
+        # Global packet / operation counters (used for per-second metrics)
+        self._cnt_rx: int = 0       # received UDP packets
+        self._cnt_tx: int = 0       # transmitted UDP packets
+        self._cnt_set_val: int = 0  # SetVal commands sent
+        self._cnt_get_val: int = 0  # GetVal commands sent
+        self._cnt_updates: int = 0  # value-update callbacks delivered
+
+    # ------------------------------------------------------------------
+    # Metrics
+    # ------------------------------------------------------------------
+
+    @property
+    def stats(self) -> dict[str, int]:
+        """Return a snapshot of the global operation counters."""
+        return {
+            "rx": self._cnt_rx,
+            "tx": self._cnt_tx,
+            "set_val": self._cnt_set_val,
+            "get_val": self._cnt_get_val,
+            "updates": self._cnt_updates,
+        }
+
     # ------------------------------------------------------------------
     # Lifecycle
     # ------------------------------------------------------------------
@@ -302,6 +324,7 @@ class AceproClient:
                     "val": 0.0,
                 },
             )
+            self._cnt_get_val += 1
             obj.next_time = time.monotonic() + INIT_RETRY_DELAY
         else:
             obj = self._registry[key]
@@ -367,6 +390,7 @@ class AceproClient:
                 "val": value,
             },
         )
+        self._cnt_set_val += 1
         obj.next_time = time.monotonic() + TX_RETRY_DELAY
         _LOGGER.debug("ACEPRO: SetVal %s/%s = %s", host, ioid, value)
 
@@ -396,12 +420,14 @@ class AceproClient:
             tx_pack["val"],
         )
         self._transport.sendto(data, (self._broadcast_address, self._port))
+        self._cnt_tx += 1
 
     def _on_datagram_received(self, data: bytes, addr: tuple) -> None:
         """Dispatch an incoming datagram to the correct AceObj."""
         pkt = decode_packet(data)
         if pkt is None:
             return
+        self._cnt_rx += 1
         # Key built from packet's SRC field (= CRC32 of the sending module's host)
         key = f"{pkt['SRC']:08X}_{pkt['IOID']}"
         obj = self._registry.get(key)
@@ -533,6 +559,7 @@ class AceproClient:
                 "val": 0.0,
             },
         )
+        self._cnt_get_val += 1
 
     def _notify_callbacks(self, obj: _AceObj) -> None:
         """Fire all registered callbacks if the value or availability changed."""
@@ -548,6 +575,7 @@ class AceproClient:
         obj.last_val = val
         obj.last_val_ren_time = now
         obj.cnt_val_ch += 1
+        self._cnt_updates += 1
 
         for cb in list(obj.callbacks):
             try:

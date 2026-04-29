@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import logging
+import time
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -11,7 +13,9 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.event import async_track_time_interval
 
 from .acepro_client import AceproClient
 from .const import (
@@ -24,9 +28,22 @@ from .const import (
     CONF_UNIT_OF_MEASUREMENT,
     DOMAIN,
     PLATFORM_SENSOR,
+    STATS_UPDATE_INTERVAL,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Diagnostic statistics sensors
+# ---------------------------------------------------------------------------
+
+_STATS_DESCRIPTORS: list[tuple[str, str]] = [
+    ("rx",      "ACEPRO Rx packets/s"),
+    ("tx",      "ACEPRO Tx packets/s"),
+    ("set_val", "ACEPRO Set Value/s"),
+    ("get_val", "ACEPRO Get Value/s"),
+    ("updates", "ACEPRO Update Value/s"),
+]
 
 
 async def async_setup_entry(
@@ -36,13 +53,76 @@ async def async_setup_entry(
 ) -> None:
     """Set up ACEPRO sensors from a config entry."""
     client: AceproClient = hass.data[DOMAIN][entry.entry_id]
-    entities = [
+
+    user_entities = [
         AceproSensor(client, cfg)
         for cfg in entry.options.get(CONF_ENTITIES, [])
         if cfg.get(CONF_PLATFORM) == PLATFORM_SENSOR
     ]
-    if entities:
-        async_add_entities(entities)
+
+    stats_entities: list[SensorEntity] = [
+        AceproStatsSensor(client, entry.entry_id, metric, name)
+        for metric, name in _STATS_DESCRIPTORS
+    ]
+
+    async_add_entities(stats_entities + user_entities)
+
+
+class AceproStatsSensor(SensorEntity):
+    """Diagnostic sensor that shows a per-second rate for one AceproClient counter."""
+
+    _attr_has_entity_name = False
+    _attr_should_poll = False
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = "1/s"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self,
+        client: AceproClient,
+        entry_id: str,
+        metric: str,
+        name: str,
+    ) -> None:
+        self._client = client
+        self._metric = metric
+        self._attr_unique_id = f"{entry_id}_stats_{metric}"
+        self._attr_name = name
+        self._last_count: int = 0
+        self._last_time: float = 0.0
+        self._attr_native_value: float | None = None
+        self._attr_available = True
+        self._unsub_timer = None
+
+    async def async_added_to_hass(self) -> None:
+        """Start the periodic update timer."""
+        self._last_count = self._client.stats[self._metric]
+        self._last_time = time.monotonic()
+        self._unsub_timer = async_track_time_interval(
+            self.hass,
+            self._async_refresh,
+            timedelta(seconds=STATS_UPDATE_INTERVAL),
+        )
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Cancel the periodic update timer."""
+        if self._unsub_timer is not None:
+            self._unsub_timer()
+            self._unsub_timer = None
+
+    @callback
+    def _async_refresh(self, _now) -> None:
+        """Compute and publish the current per-second rate."""
+        now = time.monotonic()
+        current = self._client.stats[self._metric]
+        elapsed = now - self._last_time
+        if elapsed > 0:
+            self._attr_native_value = round(
+                (current - self._last_count) / elapsed, 2
+            )
+        self._last_count = current
+        self._last_time = now
+        self.async_write_ha_state()
 
 
 class AceproSensor(SensorEntity):

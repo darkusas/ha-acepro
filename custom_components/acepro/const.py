@@ -70,3 +70,4 @@ RX_RETRY_TILL_TO = 3        # retries before declaring RX timeout
 VAL_REN_TIME = 60           # force-refresh entities at least this often
 MAIN_TIMER_PERIOD = 0.1     # 100 ms – main polling interval
 RX_OK_NOTIFY_TIME = 0.5     # seconds to show "just received" indicator
+STATS_UPDATE_INTERVAL = 10  # seconds between per-second metrics sensor updates
