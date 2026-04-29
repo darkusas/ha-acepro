@@ -121,7 +121,43 @@ acepro:
       unit_of_measurement: "ppm"
       state_class: measurement
 
-    # 4a. Switch – on/off mapped to 100 / 0
+    # 4. Sensor – relative humidity (%)
+    - name: "Bathroom humidity"
+      host: Main_module
+      ioid: 10315
+      platform: sensor
+      device_class: humidity
+      unit_of_measurement: "%"
+      state_class: measurement
+
+    # 5. Sensor – active power (W)
+    - name: "Socket power"
+      host: Main_module
+      ioid: 10316
+      platform: sensor
+      device_class: power
+      unit_of_measurement: "W"
+      state_class: measurement
+
+    # 6. Sensor – accumulated energy (kWh)
+    - name: "Socket energy"
+      host: Main_module
+      ioid: 10317
+      platform: sensor
+      device_class: energy
+      unit_of_measurement: "kWh"
+      state_class: total_increasing
+
+    # 7. Sensor – supply voltage (V)
+    - name: "Bus voltage"
+      host: Main_module
+      ioid: 10318
+      platform: sensor
+      device_class: voltage
+      unit_of_measurement: "V"
+      state_class: measurement
+
+    # 8a. Switch – on/off mapped to 100 / 0
     - name: "Garden light"
       host: Ia_Modulis
       ioid: 20100
@@ -129,7 +165,7 @@ acepro:
       on_value: 100.0
       off_value: 0.0
 
-    # 4b. Switch – on/off mapped to 1 / 0 (default)
+    # 8b. Switch – on/off mapped to 1 / 0 (default)
     - name: "Ventilation relay"
       host: Ia_Modulis
       ioid: 20101
@@ -137,7 +173,7 @@ acepro:
       on_value: 1.0                     # optional, default 1.0
       off_value: 0.0                    # optional, default 0.0
 
-    # 5. Select – operating mode (normal=1, day=2, night=3, away=4, timer=5)
+    # 9. Select – operating mode (normal=1, day=2, night=3, away=4, timer=5)
     - name: "Ventilation mode"
       host: Main_module
       ioid: 10310
@@ -149,7 +185,7 @@ acepro:
         away: 4
         timer: 5
 
-    # 6. Number – generic analog output  −1000 … +1000
+    # 10. Number – generic analog output  −1000 … +1000
     - name: "Analog output"
       host: Main_module
       ioid: 10311
@@ -158,7 +194,7 @@ acepro:
       max: 1000
       step: 1
 
-    # 7. Number – heat valve position  0–100 %
+    # 11. Number – heat valve position  0–100 %
     - name: "Heat valve"
       host: Main_module
       ioid: 10312
@@ -168,7 +204,7 @@ acepro:
       step: 1
       unit_of_measurement: "%"
 
-    # 8. Number – airflow setpoint  0–300 m³/h
+    # 12. Number – airflow setpoint  0–300 m³/h
     - name: "Airflow setpoint"
       host: Main_module
       ioid: 10313
@@ -178,7 +214,7 @@ acepro:
       step: 1
       unit_of_measurement: "m³/h"
 
-    # 9. Number – temperature setpoint  10–35 °C
+    # 13. Number – temperature setpoint  10–35 °C
     - name: "Temperature setpoint"
       host: Main_module
       ioid: 10314
@@ -197,8 +233,8 @@ acepro:
 | `host` | ✔ | all | Module host string (ASCII only, e.g. `Main_module`) |
 | `ioid` | ✔ | all | 32-bit IOID of the data point (0 – 4294967295) |
 | `platform` | ✔ | all | `sensor`, `switch`, `select`, or `number` |
-| `device_class` | – | sensor | HA sensor device class (e.g. `temperature`, `illuminance`, `carbon_dioxide`) |
-| `unit_of_measurement` | – | sensor, number | Unit string (e.g. `°C`, `lx`, `ppm`, `%`, `m³/h`) |
+| `device_class` | – | sensor | HA sensor device class (e.g. `temperature`, `humidity`, `power`, `energy`, `voltage`, `illuminance`, `carbon_dioxide`) |
+| `unit_of_measurement` | – | sensor, number | Unit string (e.g. `°C`, `%`, `W`, `kWh`, `V`, `lx`, `ppm`, `m³/h`) |
 | `state_class` | – | sensor | `measurement`, `total`, or `total_increasing` |
 | `on_value` | – | switch | Float sent when turning ON (default `1.0`) |
 | `off_value` | – | switch | Float sent when turning OFF (default `0.0`) |
@@ -276,6 +312,127 @@ template:
 
 Replace `sensor.living_room_temperature` with the actual entity ID of your
 ACEPRO sensor (visible in **Settings → Devices & Services → ACEPRO → entities**).
+
+---
+
+### Template binary sensor example (`configuration.yaml`)
+
+Derive a binary sensor from an ACEPRO sensor – useful when a module exposes a
+boolean value as a float (e.g. 1.0 = open, 0.0 = closed):
+
+```yaml
+template:
+  - binary_sensor:
+      - name: "Window open"
+        unique_id: acepro_window_open
+        device_class: window
+        state: >
+          {{ states('sensor.window_sensor') | float(0) > 0.5 }}
+        availability: >
+          {{ states('sensor.window_sensor') not in
+             ['unavailable', 'unknown', 'none'] }}
+```
+
+---
+
+### Automation examples (`automations.yaml`)
+
+**Turn on ventilation when CO₂ is high:**
+
+```yaml
+- id: acepro_co2_ventilation
+  alias: "High CO₂ – turn on ventilation"
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.living_room_co2
+      above: 1000
+  action:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.ventilation_relay
+```
+
+**Notify when a sensor becomes unavailable:**
+
+```yaml
+- id: acepro_sensor_unavailable
+  alias: "Notify when ACEPRO sensor goes unavailable"
+  trigger:
+    - platform: state
+      entity_id: sensor.living_room_temperature
+      to: "unavailable"
+      for: "00:02:00"
+  action:
+    - service: notify.mobile_app
+      data:
+        message: "ACEPRO: Living room temperature sensor is unavailable!"
+```
+
+**Set ventilation mode based on time of day:**
+
+```yaml
+- id: acepro_ventilation_night_mode
+  alias: "Ventilation – switch to night mode at 22:00"
+  trigger:
+    - platform: time
+      at: "22:00:00"
+  action:
+    - service: select.select_option
+      target:
+        entity_id: select.ventilation_mode
+      data:
+        option: night
+```
+
+---
+
+### Lovelace dashboard card examples
+
+**Entities card** – group related ACEPRO sensors:
+
+```yaml
+type: entities
+title: Living Room
+entities:
+  - entity: sensor.living_room_temperature
+  - entity: sensor.living_room_co2
+  - entity: sensor.bathroom_humidity
+  - entity: switch.ventilation_relay
+  - entity: select.ventilation_mode
+```
+
+**Gauge card** – visualise CO₂ concentration:
+
+```yaml
+type: gauge
+entity: sensor.living_room_co2
+name: CO₂
+min: 0
+max: 2000
+severity:
+  green: 0
+  yellow: 800
+  red: 1200
+```
+
+**Thermostat-style card** – combine temperature sensor with setpoint number:
+
+```yaml
+type: thermostat
+entity: climate.my_climate   # or use a custom card with the two entities below:
+# sensor.living_room_temperature
+# number.temperature_setpoint
+```
+
+**History graph card** – temperature trend:
+
+```yaml
+type: history-graph
+title: Temperature history
+entities:
+  - entity: sensor.living_room_temperature
+hours_to_show: 24
+```
 
 ---
 

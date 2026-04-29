@@ -40,6 +40,11 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Per-entity validation schema used when importing from configuration.yaml.
+# Each entity must specify a name, host, IOID, and platform; all other
+# fields are optional and depend on the chosen platform.
+# ---------------------------------------------------------------------------
 _ENTITY_SCHEMA = vol.Schema(
     {
         vol.Required("name"): cv.string,
@@ -64,6 +69,8 @@ _ENTITY_SCHEMA = vol.Schema(
     }
 )
 
+# Top-level configuration schema for configuration.yaml imports.
+# Only the broadcast_address is required; port and entities are optional.
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
