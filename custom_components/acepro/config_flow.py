@@ -133,6 +133,7 @@ def _validate_host(name: str) -> str:
 
 
 def _validate_port(port: int) -> int:
+    """Raise vol.Invalid if *port* is outside the valid TCP/UDP port range (1–65535)."""
     if not 1 <= port <= 65535:
         raise vol.Invalid("Port must be between 1 and 65535")
     return port

@@ -105,6 +105,17 @@ def decode_packet(data: bytes) -> dict | None:
 # Object state constants (mirrors AcOS_* in acepro-net.js)
 # ---------------------------------------------------------------------------
 class _State:  # pylint: disable=too-few-public-methods
+    """State machine constants for each tracked IOID (mirrors AcOS_* in acepro-net.js).
+
+    INIT      – waiting for the first reply from the module.
+    READY     – value received; monitoring for timeouts.
+    WARN_TO   – no packet received within RX_WARN_DELAY; retrying GetVal.
+    ERR_TO    – repeated timeouts; module considered unreachable.
+    SET_TX    – a SetVal has been sent; waiting for the module's echo.
+    ERR_TX_TO – SetVal not confirmed within TX_RETRY_TILL_TO retries.
+    DISABLED  – module reported ioid_state == -1 (IOID not available).
+    """
+
     INIT = 0
     READY = 100
     WARN_TO = 200
@@ -128,7 +139,7 @@ class _AceObj:
     dst_crc: int
 
     # Value / state
-    ioid_state: int = -996699   # last received IOIDState from module
+    ioid_state: int = -996699   # last received IOIDState from module; -996699 = "never received"
     actual_val: float = 0.0     # value delivered to callbacks
     last_val: float | None = None  # last value that was notified
     last_val_ren_time: float = 0.0
