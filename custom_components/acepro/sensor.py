@@ -116,10 +116,11 @@ class AceproStatsSensor(SensorEntity):
         now = time.monotonic()
         current = self._client.stats[self._metric]
         elapsed = now - self._last_time
+        delta = current - self._last_count
         if elapsed > 0:
-            self._attr_native_value = round(
-                (current - self._last_count) / elapsed, 2
-            )
+            # Guard against counter resets or wrapping producing a negative rate.
+            rate = max(delta / elapsed, 0.0)
+            self._attr_native_value = round(rate, 2)
         self._last_count = current
         self._last_time = now
         self.async_write_ha_state()
