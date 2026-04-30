@@ -37,6 +37,7 @@ from .const import (
     CONF_ON_VALUE,
     CONF_OPTIONS,
     CONF_PLATFORM,
+    CONF_PRECISION,
     CONF_STATE_CLASS,
     CONF_STEP,
     CONF_UNIT_OF_MEASUREMENT,
@@ -228,6 +229,8 @@ class AceproConfigFlow(ConfigFlow, domain=DOMAIN):
                 ent[CONF_MAX] = float(entity_cfg[CONF_MAX])
             if entity_cfg.get(CONF_STEP) is not None:
                 ent[CONF_STEP] = float(entity_cfg[CONF_STEP])
+            if entity_cfg.get(CONF_PRECISION) is not None:
+                ent[CONF_PRECISION] = int(entity_cfg[CONF_PRECISION])
             entities.append(ent)
 
         for entry in self.hass.config_entries.async_entries(DOMAIN):
@@ -350,6 +353,9 @@ class AceproOptionsFlow(OptionsFlow):
                 ]
             if user_input.get(CONF_STATE_CLASS):
                 self._pending_entity[CONF_STATE_CLASS] = user_input[CONF_STATE_CLASS]
+            precision = user_input.get(CONF_PRECISION)
+            if precision is not None and precision != "":
+                self._pending_entity[CONF_PRECISION] = int(precision)
             self._entities.append(self._pending_entity)
             self._pending_entity = {}
             return await self.async_step_init()
@@ -367,6 +373,11 @@ class AceproOptionsFlow(OptionsFlow):
                     SelectSelectorConfig(
                         options=STATE_CLASSES,
                         mode=SelectSelectorMode.DROPDOWN,
+                    )
+                ),
+                vol.Optional(CONF_PRECISION): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=10, step=1, mode=NumberSelectorMode.BOX
                     )
                 ),
             }
@@ -448,6 +459,9 @@ class AceproOptionsFlow(OptionsFlow):
             uom = user_input.get(CONF_UNIT_OF_MEASUREMENT, "")
             if uom:
                 self._pending_entity[CONF_UNIT_OF_MEASUREMENT] = uom
+            precision = user_input.get(CONF_PRECISION)
+            if precision is not None and precision != "":
+                self._pending_entity[CONF_PRECISION] = int(precision)
             self._entities.append(self._pending_entity)
             self._pending_entity = {}
             return await self.async_step_init()
@@ -464,6 +478,11 @@ class AceproOptionsFlow(OptionsFlow):
                     NumberSelectorConfig(mode=NumberSelectorMode.BOX, step=0.01, min=0.01)
                 ),
                 vol.Optional(CONF_UNIT_OF_MEASUREMENT, default=""): TextSelector(),
+                vol.Optional(CONF_PRECISION): NumberSelector(
+                    NumberSelectorConfig(
+                        min=0, max=10, step=1, mode=NumberSelectorMode.BOX
+                    )
+                ),
             }
         )
         return self.async_show_form(step_id="add_number", data_schema=schema)
