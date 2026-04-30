@@ -13,10 +13,11 @@ over **UDP broadcast / unicast** (aceBUS protocol).  No Node-RED required.
 - Entities can be defined through the **options flow** (Settings → Integrations →
   ACEPRO → Configure) **or** declared directly in `configuration.yaml`.
 - Supported platforms: **sensor**, **switch**, **select**, **number**, and **binary_sensor**.
-- Sensors support `device_class`, `unit_of_measurement`, and `state_class`.
+- Sensors support `device_class`, `unit_of_measurement`, `state_class`, and optional `precision` (decimal places).
 - Switches map on/off to configurable float values (default 1.0 / 0.0).
 - Select entities map string options to float values.
-- Number entities expose a bounded numeric input with configurable min/max/step.
+- Number entities expose a bounded numeric input with configurable min/max/step and optional `precision`.
+- Per-IOID `precision` rounds displayed values without affecting values written back to the module.
 
 ---
 
@@ -65,6 +66,7 @@ Click **Configure** on the ACEPRO integration card and choose **Add entity**.
 | Device class | `temperature` |
 | Unit of measurement | `°C` |
 | State class | `measurement` |
+| Decimal places | `1` |
 
 #### Switch example – relay
 
@@ -94,7 +96,7 @@ acepro:
   port: 31456                           # optional, default 31456
   entities:
 
-    # 1. Sensor – temperature (°C)
+    # 1. Sensor – temperature (°C), rounded to 1 decimal place
     - name: "Living room temperature"
       host: Main_module
       ioid: 10307
@@ -102,6 +104,7 @@ acepro:
       device_class: temperature
       unit_of_measurement: "°C"
       state_class: measurement
+      precision: 1
 
     # 2. Sensor – light intensity (lux)
     - name: "Office illuminance"
@@ -214,7 +217,7 @@ acepro:
       step: 1
       unit_of_measurement: "m³/h"
 
-    # 13. Number – temperature setpoint  10–35 °C
+    # 13. Number – temperature setpoint  10–35 °C, rounded to 1 decimal place
     - name: "Temperature setpoint"
       host: Main_module
       ioid: 10314
@@ -223,6 +226,7 @@ acepro:
       max: 35
       step: 0.5
       unit_of_measurement: "°C"
+      precision: 1
 
     # 14. Binary sensor – window open/closed (non-zero = open)
     - name: "Window open"
@@ -257,6 +261,7 @@ acepro:
 | `min` | – | number | Minimum allowed value (default `0`) |
 | `max` | – | number | Maximum allowed value (default `100`) |
 | `step` | – | number | Step / granularity (default `1`) |
+| `precision` | – | sensor, number | Number of decimal places to round the displayed value to (0–10). When omitted, the raw float is shown unchanged. |
 | `invert` | – | binary_sensor | When `true`, a value of `0` means *on* and any non-zero value means *off* (default `false`) |
 
 > **Note:** when `configuration.yaml` is present, the entity list it defines
@@ -307,9 +312,12 @@ to `0xFFFFFFFF`.  The same algorithm is implemented in `acepro_client.py`
 
 ### Template sensor example (`configuration.yaml`)
 
-If you want to expose the ACEPRO temperature reading as a `template` sensor
-(for example to round the value or to feed it into automations), add the
-following to your `configuration.yaml`:
+> **Tip:** For simple rounding you can now set the `precision` option directly on
+> the ACEPRO sensor (see [Entity fields](#entity-fields) above) instead of
+> creating a template sensor.
+
+If you need more advanced transformations (e.g. unit conversion, combining
+multiple sensors), add the following to your `configuration.yaml`:
 
 ```yaml
 template:
