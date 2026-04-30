@@ -45,6 +45,7 @@ _STATS_DESCRIPTORS: list[tuple[str, str]] = [
     ("get_val",     "ACEPRO Get Value/s"),
     ("updates",     "ACEPRO Update Value/s"),
     ("all_updates", "ACEPRO All Updates Value/s"),
+    ("all_get_val", "ACEPRO All Get Value/s"),
 ]
 
 

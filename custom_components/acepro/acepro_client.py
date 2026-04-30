@@ -230,6 +230,7 @@ class AceproClient:
         self._cnt_get_val: int = 0  # GetVal commands sent
         self._cnt_updates: int = 0      # value-update callbacks delivered (registered IOIDs only)
         self._cnt_all_updates: int = 0  # all CMD_ON_CHANGE packets received
+        self._cnt_all_get_val: int = 0  # all CMD_GET_VAL packets received (any source)
 
     # ------------------------------------------------------------------
     # Metrics
@@ -245,6 +246,7 @@ class AceproClient:
             "get_val": self._cnt_get_val,
             "updates": self._cnt_updates,
             "all_updates": self._cnt_all_updates,
+            "all_get_val": self._cnt_all_get_val,
         }
 
     # ------------------------------------------------------------------
@@ -434,6 +436,8 @@ class AceproClient:
         key = f"{pkt['SRC']:08X}_{pkt['IOID']}"
         if pkt["CMD"] == CMD_ON_CHANGE:
             self._cnt_all_updates += 1
+        elif pkt["CMD"] == CMD_GET_VAL:
+            self._cnt_all_get_val += 1
         obj = self._registry.get(key)
         if obj is not None:
             self._data_processing(pkt, obj)
