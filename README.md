@@ -1,7 +1,7 @@
 # ha-acepro – Home Assistant custom integration for ACEPRO (aceBUS)
 
 Native Home Assistant integration that communicates with **ACEPRO** modules
-over **UDP broadcast / unicast** (aceBUS protocol).  No Node-RED required.
+over **UDP broadcast / unicast** (aceBUS protocol).
 
 ## Features
 
