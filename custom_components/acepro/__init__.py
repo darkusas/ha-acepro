@@ -17,6 +17,7 @@ from .const import (
     CONF_ENTITIES,
     CONF_HOST,
     CONF_IOID,
+    CONF_INVERT,
     CONF_MAX,
     CONF_MIN,
     CONF_OFF_VALUE,
@@ -31,6 +32,7 @@ from .const import (
     DEFAULT_ON_VALUE,
     DEFAULT_PORT,
     DOMAIN,
+    PLATFORM_BINARY_SENSOR,
     PLATFORM_NUMBER,
     PLATFORM_SELECT,
     PLATFORM_SENSOR,
@@ -53,7 +55,7 @@ _ENTITY_SCHEMA = vol.Schema(
             vol.Coerce(int), vol.Range(min=0, max=0xFFFFFFFF)
         ),
         vol.Required(CONF_PLATFORM): vol.In(
-            [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER]
+            [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR]
         ),
         vol.Optional(CONF_DEVICE_CLASS): cv.string,
         vol.Optional(CONF_UNIT_OF_MEASUREMENT): cv.string,
@@ -66,6 +68,7 @@ _ENTITY_SCHEMA = vol.Schema(
         vol.Optional(CONF_MIN): vol.Coerce(float),
         vol.Optional(CONF_MAX): vol.Coerce(float),
         vol.Optional(CONF_STEP): vol.Coerce(float),
+        vol.Optional(CONF_INVERT, default=False): cv.boolean,
     }
 )
 
