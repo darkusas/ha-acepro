@@ -24,6 +24,7 @@ from .const import (
     CONF_ON_VALUE,
     CONF_OPTIONS,
     CONF_PLATFORM,
+    CONF_PRECISION,
     CONF_STATE_CLASS,
     CONF_STEP,
     CONF_UNIT_OF_MEASUREMENT,
@@ -69,6 +70,7 @@ _ENTITY_SCHEMA = vol.Schema(
         vol.Optional(CONF_MAX): vol.Coerce(float),
         vol.Optional(CONF_STEP): vol.Coerce(float),
         vol.Optional(CONF_INVERT, default=False): cv.boolean,
+        vol.Optional(CONF_PRECISION): vol.All(vol.Coerce(int), vol.Range(min=0)),
     }
 )
 
