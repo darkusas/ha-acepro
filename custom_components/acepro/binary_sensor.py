@@ -65,11 +65,7 @@ class AceproBinarySensor(BinarySensorEntity):
         self._attr_unique_id = config["unique_id"]
         self._attr_name = config["name"]
 
-        dc = config.get(CONF_DEVICE_CLASS) or None
-        if dc:
-            self._attr_device_class = dc
-        else:
-            self._attr_device_class = None
+        self._attr_device_class = config.get(CONF_DEVICE_CLASS) or None
 
         self._attr_is_on: bool | None = None
         self._attr_available = False
