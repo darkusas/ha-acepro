@@ -43,7 +43,8 @@
         "data": {
           "device_class": "Device class (optional)",
           "unit_of_measurement": "Unit of measurement (optional)",
-          "state_class": "State class (optional)"
+          "state_class": "State class (optional)",
+          "precision": "Decimal places (optional)"
         }
       },
       "add_switch": {
@@ -66,7 +67,8 @@
           "min": "Minimum value",
           "max": "Maximum value",
           "step": "Step size",
-          "unit_of_measurement": "Unit of measurement (optional)"
+          "unit_of_measurement": "Unit of measurement (optional)",
+          "precision": "Decimal places (optional)"
         }
       },
       "remove_entity": {

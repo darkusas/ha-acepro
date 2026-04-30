@@ -24,6 +24,7 @@ from .const import (
     CONF_HOST,
     CONF_IOID,
     CONF_PLATFORM,
+    CONF_PRECISION,
     CONF_STATE_CLASS,
     CONF_UNIT_OF_MEASUREMENT,
     DOMAIN,
@@ -169,6 +170,7 @@ class AceproSensor(SensorEntity):
 
         self._attr_native_value: float | None = None
         self._attr_available = False
+        self._precision: int | None = config.get(CONF_PRECISION)
 
     # ------------------------------------------------------------------
     # HA lifecycle
@@ -190,5 +192,7 @@ class AceproSensor(SensorEntity):
     def _on_update(self, value: float | None, ioid_state: int) -> None:
         """Handle a value / availability update from the ACEPRO client."""
         self._attr_available = ioid_state == 0 and value is not None
+        if value is not None and self._precision is not None:
+            value = round(value, self._precision)
         self._attr_native_value = value
         self.async_write_ha_state()
