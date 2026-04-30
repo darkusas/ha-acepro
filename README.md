@@ -12,7 +12,7 @@ over **UDP broadcast / unicast** (aceBUS protocol).  No Node-RED required.
   or `configuration.yaml`.
 - Entities can be defined through the **options flow** (Settings → Integrations →
   ACEPRO → Configure) **or** declared directly in `configuration.yaml`.
-- Supported platforms: **sensor**, **switch**, **select**, and **number**.
+- Supported platforms: **sensor**, **switch**, **select**, **number**, and **binary_sensor**.
 - Sensors support `device_class`, `unit_of_measurement`, and `state_class`.
 - Switches map on/off to configurable float values (default 1.0 / 0.0).
 - Select entities map string options to float values.
@@ -223,6 +223,21 @@ acepro:
       max: 35
       step: 0.5
       unit_of_measurement: "°C"
+
+    # 14. Binary sensor – window open/closed (non-zero = open)
+    - name: "Window open"
+      host: Main_module
+      ioid: 10320
+      platform: binary_sensor
+      device_class: window
+
+    # 15. Binary sensor – motion (inverted: 0 = motion detected, non-zero = clear)
+    - name: "Motion detected"
+      host: Main_module
+      ioid: 10321
+      platform: binary_sensor
+      device_class: motion
+      invert: true
 ```
 
 ### Entity fields
@@ -232,8 +247,8 @@ acepro:
 | `name` | ✔ | all | Friendly name shown in the HA UI |
 | `host` | ✔ | all | Module host string (ASCII only, e.g. `Main_module`) |
 | `ioid` | ✔ | all | 32-bit IOID of the data point (0 – 4294967295) |
-| `platform` | ✔ | all | `sensor`, `switch`, `select`, or `number` |
-| `device_class` | – | sensor | HA sensor device class (e.g. `temperature`, `humidity`, `power`, `energy`, `voltage`, `illuminance`, `carbon_dioxide`) |
+| `platform` | ✔ | all | `sensor`, `switch`, `select`, `number`, or `binary_sensor` |
+| `device_class` | – | sensor, binary_sensor | HA device class (e.g. `temperature`, `humidity`, `power`, `window`, `motion`) |
 | `unit_of_measurement` | – | sensor, number | Unit string (e.g. `°C`, `%`, `W`, `kWh`, `V`, `lx`, `ppm`, `m³/h`) |
 | `state_class` | – | sensor | `measurement`, `total`, or `total_increasing` |
 | `on_value` | – | switch | Float sent when turning ON (default `1.0`) |
@@ -242,6 +257,7 @@ acepro:
 | `min` | – | number | Minimum allowed value (default `0`) |
 | `max` | – | number | Maximum allowed value (default `100`) |
 | `step` | – | number | Step / granularity (default `1`) |
+| `invert` | – | binary_sensor | When `true`, a value of `0` means *on* and any non-zero value means *off* (default `false`) |
 
 > **Note:** when `configuration.yaml` is present, the entity list it defines
 > replaces whatever was previously saved through the UI options flow.  To
@@ -312,26 +328,6 @@ template:
 
 Replace `sensor.living_room_temperature` with the actual entity ID of your
 ACEPRO sensor (visible in **Settings → Devices & Services → ACEPRO → entities**).
-
----
-
-### Template binary sensor example (`configuration.yaml`)
-
-Derive a binary sensor from an ACEPRO sensor – useful when a module exposes a
-boolean value as a float (e.g. 1.0 = open, 0.0 = closed):
-
-```yaml
-template:
-  - binary_sensor:
-      - name: "Window open"
-        unique_id: acepro_window_open
-        device_class: window
-        state: >
-          {{ states('sensor.window_sensor') | float(0) > 0.5 }}
-        availability: >
-          {{ states('sensor.window_sensor') not in
-             ['unavailable', 'unknown', 'none'] }}
-```
 
 ---
 
