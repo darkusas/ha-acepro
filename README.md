@@ -271,6 +271,32 @@ acepro:
 
 ---
 
+## Metrics (diagnostic sensors)
+
+The integration automatically creates **6 diagnostic sensors** that show the
+per-second rate of key protocol operations.  They are visible under
+**Settings → Devices & Services → ACEPRO → entities** and are tagged with
+the *diagnostic* entity category (hidden from default dashboards).
+
+All sensors use the unit **`1/s`** (events per second), state class
+`measurement`, and are refreshed every **10 seconds**.
+
+| Sensor name | Internal key | Description |
+|---|---|---|
+| **ACEPRO Rx packets/s** | `rx` | Rate of UDP packets **received** from ACEPRO modules. Counts every datagram that arrives on the listening socket, regardless of whether it is a valid aceBUS packet. |
+| **ACEPRO Tx packets/s** | `tx` | Rate of UDP packets **sent** to ACEPRO modules (GetVal + SetVal combined). |
+| **ACEPRO Get Value/s** | `get_val` | Rate of **GetVal** (`0xACE00040`) commands sent. A GetVal is issued for each registered IOID at startup and periodically to poll the current value. |
+| **ACEPRO Set Value/s** | `set_val` | Rate of **SetVal** (`0xACE00080`) commands sent. A SetVal is issued every time an entity (switch, select, number) writes a new value to a module. |
+| **ACEPRO Update Value/s** | `updates` | Rate of **OnChange** (`0xACE000C0`) packets that matched a **registered** IOID and triggered an entity state update in Home Assistant. |
+| **ACEPRO All Updates Value/s** | `all_updates` | Rate of **all** OnChange packets received, including those for IOIDs that are *not* registered with the integration. Useful for detecting unexpected traffic or verifying that the module is broadcasting data. |
+
+> **Tip:** If *Rx packets/s* is zero, the integration is not receiving any UDP
+> traffic – check the broadcast address, UDP port, and network routing.
+> If *All Updates Value/s* is non-zero but *Update Value/s* is zero, the
+> module is broadcasting for IOIDs that are not yet configured as entities.
+
+---
+
 ## Protocol notes
 
 ### Packet layout (28 bytes, big-endian)
