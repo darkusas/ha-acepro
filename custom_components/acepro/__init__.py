@@ -17,6 +17,7 @@ from .const import (
     CONF_DEVICE_CLASS,
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ICON,
     CONF_IOID,
     CONF_INVERT,
     CONF_MAX,
@@ -62,6 +63,7 @@ _ENTITY_SCHEMA = vol.Schema(
             [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR, PLATFORM_INPUT_BOOLEAN]
         ),
         vol.Optional(CONF_DEVICE_CLASS): cv.string,
+        vol.Optional(CONF_ICON): cv.icon,
         vol.Optional(CONF_UNIT_OF_MEASUREMENT): cv.string,
         vol.Optional(CONF_STATE_CLASS): cv.string,
         vol.Optional(CONF_ON_VALUE, default=DEFAULT_ON_VALUE): vol.Coerce(float),
