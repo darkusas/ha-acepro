@@ -13,6 +13,7 @@ from .acepro_client import AceproClient
 from .const import (
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ICON,
     CONF_IOID,
     CONF_OFF_VALUE,
     CONF_ON_VALUE,
@@ -62,6 +63,7 @@ class AceproSwitch(SwitchEntity):
 
         self._attr_unique_id = config["unique_id"]
         self._attr_name = config["name"]
+        self._attr_icon = config.get(CONF_ICON) or None
         self._attr_is_on: bool | None = None
         self._attr_available = False
 

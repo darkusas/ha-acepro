@@ -14,6 +14,7 @@ from .const import (
     CONF_DEVICE_CLASS,
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ICON,
     CONF_IOID,
     CONF_INVERT,
     CONF_PLATFORM,
@@ -64,6 +65,7 @@ class AceproBinarySensor(BinarySensorEntity):
 
         self._attr_unique_id = config["unique_id"]
         self._attr_name = config["name"]
+        self._attr_icon = config.get(CONF_ICON) or None
 
         self._attr_device_class = config.get(CONF_DEVICE_CLASS) or None
 

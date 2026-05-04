@@ -18,6 +18,7 @@ over **UDP broadcast / unicast** (aceBUS protocol).
 - Select entities map string options to float values.
 - Number entities expose a bounded numeric input with configurable min/max/step, optional `precision`, and display `mode` (`box`, `slider`, or `auto`).
 - Per-IOID `precision` rounds displayed values without affecting values written back to the module.
+- Any entity can have a custom **icon** set via the `icon` key (e.g. `icon: mdi:thermostat`).
 
 ---
 
@@ -116,6 +117,7 @@ acepro:
       unit_of_measurement: "°C"
       state_class: measurement
       precision: 1
+      icon: mdi:thermometer
 
     # 2. Sensor – light intensity (lux)
     - name: "Office illuminance"
@@ -302,6 +304,7 @@ acepro:
 | `mode` | – | number | Display mode in the UI: `box` (default), `slider`, or `auto` |
 | `precision` | – | sensor, number | Number of decimal places to round the displayed value to (0–10). When omitted, the raw float is shown unchanged. |
 | `invert` | – | binary_sensor | When `true`, a value of `0` means *on* and any non-zero value means *off* (default `false`) |
+| `icon` | – | all | Custom MDI icon to display in the HA UI (e.g. `mdi:thermostat`, `mdi:lightbulb`). Overrides the platform default. |
 
 > **Note:** when `configuration.yaml` is present, the entity list it defines
 > replaces whatever was previously saved through the UI options flow.  To
