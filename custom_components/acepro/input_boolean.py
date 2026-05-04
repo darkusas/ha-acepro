@@ -1,10 +1,10 @@
-"""ACEPRO switch platform."""
+"""ACEPRO input_boolean platform."""
 from __future__ import annotations
 
 import logging
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.toggle import ToggleEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -21,7 +21,7 @@ from .const import (
     DEFAULT_OFF_VALUE,
     DEFAULT_ON_VALUE,
     DOMAIN,
-    PLATFORM_SWITCH,
+    PLATFORM_INPUT_BOOLEAN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,19 +32,19 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up ACEPRO switches from a config entry."""
+    """Set up ACEPRO input_boolean entities from a config entry."""
     client: AceproClient = hass.data[DOMAIN][entry.entry_id]
     entities = [
-        AceproSwitch(client, cfg)
+        AceproInputBoolean(client, cfg)
         for cfg in entry.options.get(CONF_ENTITIES, [])
-        if cfg.get(CONF_PLATFORM) == PLATFORM_SWITCH
+        if cfg.get(CONF_PLATFORM) == PLATFORM_INPUT_BOOLEAN
     ]
     if entities:
         async_add_entities(entities)
 
 
-class AceproSwitch(SwitchEntity):
-    """Represents one ACEPRO IOID as a Home Assistant switch."""
+class AceproInputBoolean(ToggleEntity):
+    """Represents one ACEPRO IOID as a Home Assistant input_boolean entity."""
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -84,16 +84,16 @@ class AceproSwitch(SwitchEntity):
     # ------------------------------------------------------------------
 
     async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the switch on."""
+        """Turn the input_boolean on."""
         _LOGGER.debug(
-            "ACEPRO switch %s/%s: turn on (val=%s)", self._host, self._ioid, self._on_value
+            "ACEPRO input_boolean %s/%s: turn on (val=%s)", self._host, self._ioid, self._on_value
         )
         self._client.send_value(self._host, self._ioid, self._on_value)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the switch off."""
+        """Turn the input_boolean off."""
         _LOGGER.debug(
-            "ACEPRO switch %s/%s: turn off (val=%s)", self._host, self._ioid, self._off_value
+            "ACEPRO input_boolean %s/%s: turn off (val=%s)", self._host, self._ioid, self._off_value
         )
         self._client.send_value(self._host, self._ioid, self._off_value)
 
@@ -106,7 +106,6 @@ class AceproSwitch(SwitchEntity):
         """Handle a value / availability update from the ACEPRO client."""
         self._attr_available = ioid_state == 0 and value is not None
         if value is not None:
-            # Consider "on" when value is closer to on_value than off_value
             self._attr_is_on = abs(value - self._on_value) < abs(value - self._off_value)
         else:
             self._attr_is_on = None

@@ -23,7 +23,6 @@ from .const import (
     CONF_STEP,
     CONF_UNIT_OF_MEASUREMENT,
     DOMAIN,
-    PLATFORM_INPUT_NUMBER,
     PLATFORM_NUMBER,
 )
 
@@ -40,7 +39,7 @@ async def async_setup_entry(
     entities = [
         AceproNumber(client, cfg)
         for cfg in entry.options.get(CONF_ENTITIES, [])
-        if cfg.get(CONF_PLATFORM) in (PLATFORM_NUMBER, PLATFORM_INPUT_NUMBER)
+        if cfg.get(CONF_PLATFORM) == PLATFORM_NUMBER
     ]
     if entities:
         async_add_entities(entities)
