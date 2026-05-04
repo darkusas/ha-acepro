@@ -22,6 +22,7 @@ from .const import (
     CONF_DEVICE_CLASS,
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ICON,
     CONF_IOID,
     CONF_PLATFORM,
     CONF_PRECISION,
@@ -170,6 +171,7 @@ class AceproSensor(SensorEntity):
         else:
             self._attr_state_class = None
 
+        self._attr_icon = config.get(CONF_ICON) or None
         self._attr_native_value: float | None = None
         self._attr_available = False
         self._precision: int | None = config.get(CONF_PRECISION)

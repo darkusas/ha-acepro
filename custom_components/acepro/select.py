@@ -13,6 +13,7 @@ from .acepro_client import AceproClient
 from .const import (
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ICON,
     CONF_IOID,
     CONF_OPTIONS,
     CONF_PLATFORM,
@@ -66,6 +67,7 @@ class AceproSelect(SelectEntity):
 
         self._attr_unique_id = config["unique_id"]
         self._attr_name = config["name"]
+        self._attr_icon = config.get(CONF_ICON) or None
         self._attr_options = list(self._option_to_value.keys())
         self._attr_current_option: str | None = None
         self._attr_available = False

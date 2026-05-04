@@ -13,6 +13,7 @@ from .acepro_client import AceproClient
 from .const import (
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ICON,
     CONF_IOID,
     CONF_MAX,
     CONF_MIN,
@@ -67,6 +68,7 @@ class AceproNumber(NumberEntity):
 
         self._attr_unique_id = config["unique_id"]
         self._attr_name = config["name"]
+        self._attr_icon = config.get(CONF_ICON) or None
         self._attr_native_min_value = float(config.get(CONF_MIN, 0))
         self._attr_native_max_value = float(config.get(CONF_MAX, 100))
         self._attr_native_step = float(config.get(CONF_STEP, 1))
