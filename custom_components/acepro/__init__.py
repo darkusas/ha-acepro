@@ -20,6 +20,7 @@ from .const import (
     CONF_INVERT,
     CONF_MAX,
     CONF_MIN,
+    CONF_MODE,
     CONF_OFF_VALUE,
     CONF_ON_VALUE,
     CONF_OPTIONS,
@@ -70,6 +71,7 @@ _ENTITY_SCHEMA = vol.Schema(
         vol.Optional(CONF_MIN): vol.Coerce(float),
         vol.Optional(CONF_MAX): vol.Coerce(float),
         vol.Optional(CONF_STEP): vol.Coerce(float),
+        vol.Optional(CONF_MODE): vol.In(["box", "slider", "auto"]),
         vol.Optional(CONF_INVERT, default=False): cv.boolean,
         vol.Optional(CONF_PRECISION): vol.All(vol.Coerce(int), vol.Range(min=0)),
     }

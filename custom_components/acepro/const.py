@@ -41,6 +41,7 @@ CONF_MAX = "max"                  # number: maximum value
 CONF_STEP = "step"                # number: step size
 CONF_INVERT = "invert"            # binary_sensor: invert logic (0 → True)
 CONF_PRECISION = "precision"      # sensor/number: decimal places to round to
+CONF_MODE = "mode"                # number: display mode ("box", "slider", "auto")
 
 # ---------------------------------------------------------------------------
 # Defaults

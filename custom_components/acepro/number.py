@@ -16,6 +16,7 @@ from .const import (
     CONF_IOID,
     CONF_MAX,
     CONF_MIN,
+    CONF_MODE,
     CONF_PLATFORM,
     CONF_PRECISION,
     CONF_STEP,
@@ -52,7 +53,12 @@ class AceproNumber(NumberEntity):
 
     _attr_has_entity_name = True
     _attr_should_poll = False
-    _attr_mode = NumberMode.BOX
+
+    _MODE_MAP = {
+        "slider": NumberMode.SLIDER,
+        "box": NumberMode.BOX,
+        "auto": NumberMode.AUTO,
+    }
 
     def __init__(self, client: AceproClient, config: dict[str, Any]) -> None:
         self._client = client
@@ -66,6 +72,9 @@ class AceproNumber(NumberEntity):
         self._attr_native_step = float(config.get(CONF_STEP, 1))
         self._attr_native_unit_of_measurement = (
             config.get(CONF_UNIT_OF_MEASUREMENT) or None
+        )
+        self._attr_mode = self._MODE_MAP.get(
+            config.get(CONF_MODE, "box"), NumberMode.BOX
         )
         self._attr_native_value: float | None = None
         self._attr_available = False
