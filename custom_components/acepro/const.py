@@ -58,7 +58,8 @@ PLATFORM_SWITCH = "switch"
 PLATFORM_SELECT = "select"
 PLATFORM_NUMBER = "number"
 PLATFORM_BINARY_SENSOR = "binary_sensor"
-PLATFORMS = [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR]
+PLATFORM_INPUT_BOOLEAN = "input_boolean"
+PLATFORMS = [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR, PLATFORM_INPUT_BOOLEAN]
 
 # ---------------------------------------------------------------------------
 # State-machine timing (seconds, mirrored from acepro-net.js)
