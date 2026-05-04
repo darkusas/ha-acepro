@@ -30,9 +30,12 @@ from .const import (
     CONF_DEVICE_CLASS,
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ICON,
     CONF_IOID,
+    CONF_INVERT,
     CONF_MAX,
     CONF_MIN,
+    CONF_MODE,
     CONF_OFF_VALUE,
     CONF_ON_VALUE,
     CONF_OPTIONS,
@@ -46,6 +49,8 @@ from .const import (
     DEFAULT_ON_VALUE,
     DEFAULT_PORT,
     DOMAIN,
+    PLATFORM_INPUT_BOOLEAN,
+    PLATFORM_INPUT_NUMBER,
     PLATFORM_NUMBER,
     PLATFORM_SELECT,
     PLATFORM_SENSOR,
@@ -231,8 +236,13 @@ class AceproConfigFlow(ConfigFlow, domain=DOMAIN):
                 ent[CONF_STEP] = float(entity_cfg[CONF_STEP])
             if entity_cfg.get(CONF_PRECISION) is not None:
                 ent[CONF_PRECISION] = int(entity_cfg[CONF_PRECISION])
+            if entity_cfg.get(CONF_ICON):
+                ent[CONF_ICON] = entity_cfg[CONF_ICON]
+            if entity_cfg.get(CONF_MODE):
+                ent[CONF_MODE] = entity_cfg[CONF_MODE]
+            if entity_cfg.get(CONF_INVERT, False):
+                ent[CONF_INVERT] = True
             entities.append(ent)
-
         for entry in self.hass.config_entries.async_entries(DOMAIN):
             if entry.unique_id == unique_id:
                 self.hass.config_entries.async_update_entry(
@@ -314,9 +324,13 @@ class AceproOptionsFlow(OptionsFlow):
                     return await self.async_step_add_sensor()
                 if platform == PLATFORM_SWITCH:
                     return await self.async_step_add_switch()
+                if platform == PLATFORM_INPUT_BOOLEAN:
+                    return await self.async_step_add_switch()
                 if platform == PLATFORM_SELECT:
                     return await self.async_step_add_select()
                 if platform == PLATFORM_NUMBER:
+                    return await self.async_step_add_number()
+                if platform == PLATFORM_INPUT_NUMBER:
                     return await self.async_step_add_number()
 
         schema = vol.Schema(
@@ -330,7 +344,7 @@ class AceproOptionsFlow(OptionsFlow):
                 ),
                 vol.Required(CONF_PLATFORM, default=PLATFORM_SENSOR): SelectSelector(
                     SelectSelectorConfig(
-                        options=[PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER],
+                        options=[PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_INPUT_BOOLEAN, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_INPUT_NUMBER],
                         mode=SelectSelectorMode.LIST,
                     )
                 ),
@@ -462,6 +476,9 @@ class AceproOptionsFlow(OptionsFlow):
             precision = user_input.get(CONF_PRECISION)
             if precision is not None and precision != "":
                 self._pending_entity[CONF_PRECISION] = int(precision)
+            mode = user_input.get(CONF_MODE, "")
+            if mode:
+                self._pending_entity[CONF_MODE] = mode
             self._entities.append(self._pending_entity)
             self._pending_entity = {}
             return await self.async_step_init()
@@ -481,6 +498,12 @@ class AceproOptionsFlow(OptionsFlow):
                 vol.Optional(CONF_PRECISION): NumberSelector(
                     NumberSelectorConfig(
                         min=0, max=10, step=1, mode=NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Optional(CONF_MODE, default=""): SelectSelector(
+                    SelectSelectorConfig(
+                        options=["", "box", "slider", "auto"],
+                        mode=SelectSelectorMode.DROPDOWN,
                     )
                 ),
             }

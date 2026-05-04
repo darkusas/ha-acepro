@@ -21,6 +21,7 @@ from .const import (
     DEFAULT_OFF_VALUE,
     DEFAULT_ON_VALUE,
     DOMAIN,
+    PLATFORM_INPUT_BOOLEAN,
     PLATFORM_SWITCH,
 )
 
@@ -37,7 +38,7 @@ async def async_setup_entry(
     entities = [
         AceproSwitch(client, cfg)
         for cfg in entry.options.get(CONF_ENTITIES, [])
-        if cfg.get(CONF_PLATFORM) == PLATFORM_SWITCH
+        if cfg.get(CONF_PLATFORM) in (PLATFORM_SWITCH, PLATFORM_INPUT_BOOLEAN)
     ]
     if entities:
         async_add_entities(entities)
