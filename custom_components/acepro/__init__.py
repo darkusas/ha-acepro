@@ -7,8 +7,9 @@ import voluptuous as vol
 
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import CONF_PORT
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import entity_registry as er
 
 from .acepro_client import AceproClient
 from .const import (
@@ -100,6 +101,16 @@ CONFIG_SCHEMA = vol.Schema(
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Import ACEPRO configuration from configuration.yaml."""
     if DOMAIN not in config:
+        # The acepro: section was removed from configuration.yaml.
+        # Strip any entities that were created via YAML import (unique_id starts
+        # with "yaml_") from existing config entries so they don't linger.
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            entities = entry.options.get(CONF_ENTITIES, [])
+            non_yaml = [e for e in entities if not e.get("unique_id", "").startswith("yaml_")]
+            if len(non_yaml) != len(entities):
+                hass.config_entries.async_update_entry(
+                    entry, options={**entry.options, CONF_ENTITIES: non_yaml}
+                )
         return True
     # Schedule the import flow as a task so it runs after the current
     # setup pass completes.  This is the standard HA pattern for YAML
@@ -114,9 +125,36 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
+@callback
+def _async_cleanup_stale_entities(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Remove entity registry entries for ACEPRO entities no longer in config.
+
+    When entities are removed from configuration.yaml (or via the options
+    flow) and the config entry reloads, HA's entity registry still holds the
+    old entries.  This helper explicitly removes them so they don't show up as
+    unavailable orphans.
+    """
+    ent_reg = er.async_get(hass)
+    current_unique_ids = {
+        cfg["unique_id"] for cfg in entry.options.get(CONF_ENTITIES, [])
+    }
+    to_remove = [
+        ent_entry.entity_id
+        for ent_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id)
+        if not ent_entry.unique_id.startswith(f"{entry.entry_id}_stats_")
+        and ent_entry.unique_id not in current_unique_ids
+    ]
+    for entity_id in to_remove:
+        ent_reg.async_remove(entity_id)
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up ACEPRO from a config entry."""
     hass.data.setdefault(DOMAIN, {})
+
+    # Remove any entities from the HA entity registry that are no longer
+    # present in the current options (e.g. after editing configuration.yaml).
+    _async_cleanup_stale_entities(hass, entry)
 
     client = AceproClient(
         broadcast_address=entry.data[CONF_BROADCAST_ADDRESS],
