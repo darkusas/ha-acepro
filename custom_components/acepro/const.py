@@ -60,9 +60,9 @@ PLATFORM_SWITCH = "switch"
 PLATFORM_SELECT = "select"
 PLATFORM_NUMBER = "number"
 PLATFORM_BINARY_SENSOR = "binary_sensor"
-PLATFORM_INPUT_BOOLEAN = "input_boolean"  # registered as input_boolean domain entities
-PLATFORM_INPUT_NUMBER = "input_number"    # registered as input_number domain entities
-PLATFORMS = [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR, PLATFORM_INPUT_BOOLEAN, PLATFORM_INPUT_NUMBER]
+PLATFORM_INPUT_BOOLEAN = "input_boolean"  # uses EntityPlatform directly; entity_ids like input_boolean.xxx
+PLATFORM_INPUT_NUMBER = "input_number"    # uses EntityPlatform directly; entity_ids like input_number.xxx
+PLATFORMS = [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR]
 
 # ---------------------------------------------------------------------------
 # State-machine timing (seconds, mirrored from acepro-net.js)

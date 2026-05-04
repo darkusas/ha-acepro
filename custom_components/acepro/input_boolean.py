@@ -1,13 +1,21 @@
-"""ACEPRO input_boolean platform."""
+"""ACEPRO input_boolean platform.
+
+Entities are registered under the ``input_boolean`` domain (entity_ids like
+``input_boolean.xxx``) by creating an EntityPlatform directly rather than
+going through async_forward_entry_setups, which does not work for HA helper
+domains.  The platform is linked to the config entry so that the standard
+stale-entity cleanup logic works correctly.
+"""
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.toggle import ToggleEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import EntityPlatform
 
 from .acepro_client import AceproClient
 from .const import (
@@ -27,20 +35,37 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
+async def async_setup_entities(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up ACEPRO input_boolean entities from a config entry."""
-    client: AceproClient = hass.data[DOMAIN][entry.entry_id]
+    client: AceproClient,
+) -> EntityPlatform | None:
+    """Set up ACEPRO input_boolean entities.
+
+    Returns the EntityPlatform used (caller must call async_destroy() on
+    unload) or None if there are no input_boolean entities configured.
+    """
     entities = [
         AceproInputBoolean(client, cfg)
         for cfg in entry.options.get(CONF_ENTITIES, [])
         if cfg.get(CONF_PLATFORM) == PLATFORM_INPUT_BOOLEAN
     ]
-    if entities:
-        async_add_entities(entities)
+    if not entities:
+        return None
+
+    platform = EntityPlatform(
+        hass=hass,
+        logger=_LOGGER,
+        domain=PLATFORM_INPUT_BOOLEAN,
+        platform_name=DOMAIN,
+        platform=None,
+        scan_interval=timedelta(seconds=0),
+        entity_namespace=None,
+    )
+    platform.config_entry = entry
+    platform.async_prepare()
+    await platform.async_add_entities(entities)
+    return platform
 
 
 class AceproInputBoolean(ToggleEntity):
