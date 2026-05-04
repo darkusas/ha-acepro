@@ -60,8 +60,8 @@ PLATFORM_SWITCH = "switch"
 PLATFORM_SELECT = "select"
 PLATFORM_NUMBER = "number"
 PLATFORM_BINARY_SENSOR = "binary_sensor"
-PLATFORM_INPUT_BOOLEAN = "input_boolean"  # alias: routed through the switch platform
-PLATFORM_INPUT_NUMBER = "input_number"    # alias: routed through the number platform
+PLATFORM_INPUT_BOOLEAN = "input_boolean"  # uses EntityPlatform directly; entity_ids like input_boolean.xxx
+PLATFORM_INPUT_NUMBER = "input_number"    # uses EntityPlatform directly; entity_ids like input_number.xxx
 PLATFORMS = [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR]
 
 # ---------------------------------------------------------------------------

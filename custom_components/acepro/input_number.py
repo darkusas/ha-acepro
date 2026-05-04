@@ -1,13 +1,21 @@
-"""ACEPRO number platform."""
+"""ACEPRO input_number platform.
+
+Entities are registered under the ``input_number`` domain (entity_ids like
+``input_number.xxx``) by creating an EntityPlatform directly rather than
+going through async_forward_entry_setups, which does not work for HA helper
+domains.  The platform is linked to the config entry so that the standard
+stale-entity cleanup logic works correctly.
+"""
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.helpers.entity_platform import EntityPlatform
 
 from .acepro_client import AceproClient
 from .const import (
@@ -23,34 +31,47 @@ from .const import (
     CONF_STEP,
     CONF_UNIT_OF_MEASUREMENT,
     DOMAIN,
-    PLATFORM_NUMBER,
+    PLATFORM_INPUT_NUMBER,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
+async def async_setup_entities(
     hass: HomeAssistant,
     entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    """Set up ACEPRO number entities from a config entry."""
-    client: AceproClient = hass.data[DOMAIN][entry.entry_id]
-    entities = [
-        AceproNumber(client, cfg)
-        for cfg in entry.options.get(CONF_ENTITIES, [])
-        if cfg.get(CONF_PLATFORM) == PLATFORM_NUMBER
-    ]
-    if entities:
-        async_add_entities(entities)
+    client: AceproClient,
+) -> EntityPlatform | None:
+    """Set up ACEPRO input_number entities.
 
-
-class AceproNumber(NumberEntity):
-    """Represents one ACEPRO IOID as a Home Assistant number entity.
-
-    The ``min``, ``max``, and ``step`` config keys define the allowed range
-    and granularity.  ``unit_of_measurement`` is optional.
+    Returns the EntityPlatform used (caller must call async_destroy() on
+    unload) or None if there are no input_number entities configured.
     """
+    entities = [
+        AceproInputNumber(client, cfg)
+        for cfg in entry.options.get(CONF_ENTITIES, [])
+        if cfg.get(CONF_PLATFORM) == PLATFORM_INPUT_NUMBER
+    ]
+    if not entities:
+        return None
+
+    platform = EntityPlatform(
+        hass=hass,
+        logger=_LOGGER,
+        domain=PLATFORM_INPUT_NUMBER,
+        platform_name=DOMAIN,
+        platform=None,
+        scan_interval=timedelta(seconds=0),
+        entity_namespace=None,
+    )
+    platform.config_entry = entry
+    platform.async_prepare()
+    await platform.async_add_entities(entities)
+    return platform
+
+
+class AceproInputNumber(NumberEntity):
+    """Represents one ACEPRO IOID as a Home Assistant input_number entity."""
 
     _attr_has_entity_name = True
     _attr_should_poll = False
@@ -101,7 +122,7 @@ class AceproNumber(NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Send *value* to the ACEPRO module."""
         _LOGGER.debug(
-            "ACEPRO number %s/%s: set value %s", self._host, self._ioid, value
+            "ACEPRO input_number %s/%s: set value %s", self._host, self._ioid, value
         )
         self._client.send_value(self._host, self._ioid, value)
 

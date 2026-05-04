@@ -45,6 +45,8 @@ from .const import (
     PLATFORM_SWITCH,
     PLATFORMS,
 )
+from . import input_boolean as _ib_module
+from . import input_number as _in_module
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -173,6 +175,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    # input_boolean and input_number entities are registered directly via
+    # EntityPlatform (not through async_forward_entry_setups) so that their
+    # entity_ids carry the correct domain prefix (input_boolean.xxx /
+    # input_number.xxx).
+    ib_platform = await _ib_module.async_setup_entities(hass, entry, client)
+    in_platform = await _in_module.async_setup_entities(hass, entry, client)
+    hass.data[DOMAIN][f"{entry.entry_id}_ib"] = ib_platform
+    hass.data[DOMAIN][f"{entry.entry_id}_in"] = in_platform
+
     # Reload the entry when the user changes options (entity list)
     entry.async_on_unload(entry.add_update_listener(_async_update_listener))
 
@@ -188,6 +199,12 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unload_ok:
+        # Destroy the manually-managed input_boolean / input_number platforms.
+        for key in (f"{entry.entry_id}_ib", f"{entry.entry_id}_in"):
+            platform = hass.data[DOMAIN].pop(key, None)
+            if platform is not None:
+                await platform.async_destroy()
+
         client: AceproClient = hass.data[DOMAIN].pop(entry.entry_id)
         await client.stop()
     return unload_ok
