@@ -12,7 +12,7 @@ over **UDP broadcast / unicast** (aceBUS protocol).
   or `configuration.yaml`.
 - Entities can be defined through the **options flow** (Settings → Integrations →
   ACEPRO → Configure) **or** declared directly in `configuration.yaml`.
-- Supported platforms: **sensor**, **switch**, **select**, **number**, and **binary_sensor**.
+- Supported platforms: **sensor**, **switch**, **select**, **number**, **binary_sensor**, and **input_boolean**.
 - Sensors support `device_class`, `unit_of_measurement`, `state_class`, and optional `precision` (decimal places).
 - Switches map on/off to configurable float values (default 1.0 / 0.0).
 - Select entities map string options to float values.
@@ -76,6 +76,17 @@ Click **Configure** on the ACEPRO integration card and choose **Add entity**.
 | Host | `Ia_Modulis` |
 | IOID | `10308` |
 | Platform | `switch` |
+| ON value | `1.0` |
+| OFF value | `0.0` |
+
+#### Input boolean example – virtual toggle
+
+| Field | Value |
+|---|---|
+| Name | `Away mode` |
+| Host | `Main_module` |
+| IOID | `10330` |
+| Platform | `input_boolean` |
 | ON value | `1.0` |
 | OFF value | `0.0` |
 
@@ -242,6 +253,22 @@ acepro:
       platform: binary_sensor
       device_class: motion
       invert: true
+
+    # 16. Input boolean – virtual flag (e.g. "Away mode" backed by ACEPRO)
+    - name: "Away mode"
+      host: Main_module
+      ioid: 10330
+      platform: input_boolean
+      on_value: 1.0                     # optional, default 1.0
+      off_value: 0.0                    # optional, default 0.0
+
+    # 17. Input boolean – "Night mode" toggle mapped to 100 / 0
+    - name: "Night mode"
+      host: Main_module
+      ioid: 10331
+      platform: input_boolean
+      on_value: 100.0
+      off_value: 0.0
 ```
 
 ### Entity fields
@@ -251,12 +278,12 @@ acepro:
 | `name` | ✔ | all | Friendly name shown in the HA UI |
 | `host` | ✔ | all | Module host string (ASCII only, e.g. `Main_module`) |
 | `ioid` | ✔ | all | 32-bit IOID of the data point (0 – 4294967295) |
-| `platform` | ✔ | all | `sensor`, `switch`, `select`, `number`, or `binary_sensor` |
+| `platform` | ✔ | all | `sensor`, `switch`, `select`, `number`, `binary_sensor`, or `input_boolean` |
 | `device_class` | – | sensor, binary_sensor | HA device class (e.g. `temperature`, `humidity`, `power`, `window`, `motion`) |
 | `unit_of_measurement` | – | sensor, number | Unit string (e.g. `°C`, `%`, `W`, `kWh`, `V`, `lx`, `ppm`, `m³/h`) |
 | `state_class` | – | sensor | `measurement`, `total`, or `total_increasing` |
-| `on_value` | – | switch | Float sent when turning ON (default `1.0`) |
-| `off_value` | – | switch | Float sent when turning OFF (default `0.0`) |
+| `on_value` | – | switch, input_boolean | Float sent when turning ON (default `1.0`) |
+| `off_value` | – | switch, input_boolean | Float sent when turning OFF (default `0.0`) |
 | `options` | – | select | Dict mapping option labels to float values (e.g. `normal: 1`) |
 | `min` | – | number | Minimum allowed value (default `0`) |
 | `max` | – | number | Maximum allowed value (default `100`) |

@@ -34,6 +34,7 @@ from .const import (
     DEFAULT_PORT,
     DOMAIN,
     PLATFORM_BINARY_SENSOR,
+    PLATFORM_INPUT_BOOLEAN,
     PLATFORM_NUMBER,
     PLATFORM_SELECT,
     PLATFORM_SENSOR,
@@ -56,7 +57,7 @@ _ENTITY_SCHEMA = vol.Schema(
             vol.Coerce(int), vol.Range(min=0, max=0xFFFFFFFF)
         ),
         vol.Required(CONF_PLATFORM): vol.In(
-            [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR]
+            [PLATFORM_SENSOR, PLATFORM_SWITCH, PLATFORM_SELECT, PLATFORM_NUMBER, PLATFORM_BINARY_SENSOR, PLATFORM_INPUT_BOOLEAN]
         ),
         vol.Optional(CONF_DEVICE_CLASS): cv.string,
         vol.Optional(CONF_UNIT_OF_MEASUREMENT): cv.string,
