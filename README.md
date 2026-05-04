@@ -16,7 +16,7 @@ over **UDP broadcast / unicast** (aceBUS protocol).
 - Sensors support `device_class`, `unit_of_measurement`, `state_class`, and optional `precision` (decimal places).
 - Switches map on/off to configurable float values (default 1.0 / 0.0).
 - Select entities map string options to float values.
-- Number entities expose a bounded numeric input with configurable min/max/step and optional `precision`.
+- Number entities expose a bounded numeric input with configurable min/max/step, optional `precision`, and display `mode` (`box`, `slider`, or `auto`).
 - Per-IOID `precision` rounds displayed values without affecting values written back to the module.
 
 ---
@@ -239,6 +239,17 @@ acepro:
       unit_of_measurement: "°C"
       precision: 1
 
+    # 13b. Number – temperature setpoint with slider UI
+    - name: "Hall 0a temperature control setp"
+      host: K1015_VLN_0a
+      ioid: 50010002
+      platform: number
+      min: 10
+      max: 35
+      step: 1.0
+      mode: slider
+      unit_of_measurement: "°C"
+
     # 14. Binary sensor – window open/closed (non-zero = open)
     - name: "Window open"
       host: Main_module
@@ -288,6 +299,7 @@ acepro:
 | `min` | – | number | Minimum allowed value (default `0`) |
 | `max` | – | number | Maximum allowed value (default `100`) |
 | `step` | – | number | Step / granularity (default `1`) |
+| `mode` | – | number | Display mode in the UI: `box` (default), `slider`, or `auto` |
 | `precision` | – | sensor, number | Number of decimal places to round the displayed value to (0–10). When omitted, the raw float is shown unchanged. |
 | `invert` | – | binary_sensor | When `true`, a value of `0` means *on* and any non-zero value means *off* (default `false`) |
 
