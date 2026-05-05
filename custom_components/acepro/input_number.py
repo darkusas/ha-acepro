@@ -119,16 +119,12 @@ class AceproInputNumber(NumberEntity):
     # Commands
     # ------------------------------------------------------------------
 
-    def set_value(self, value: float) -> None:
+    async def async_set_native_value(self, value: float) -> None:
         """Send value to the ACEPRO module."""
         _LOGGER.debug(
             "ACEPRO input_number %s/%s: set value %s", self._host, self._ioid, value
         )
         self._client.send_value(self._host, self._ioid, value)
-    
-    async def async_set_native_value(self, value: float) -> None:
-        """Send value to the ACEPRO module."""
-        await self.hass.async_add_executor_job(self.set_value, value)
 
     # ------------------------------------------------------------------
     # Value update callback
