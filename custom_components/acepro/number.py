@@ -98,8 +98,8 @@ class AceproNumber(NumberEntity):
     # Commands
     # ------------------------------------------------------------------
 
-    def set_value(self, value: float) -> None:
-        """Send value to the ACEPRO module (sync entry-point for HA scripts/automations)."""
+    def _send_value(self, value: float) -> None:
+        """Internal helper to send value to the ACEPRO module."""
         _LOGGER.debug(
             "ACEPRO number %s/%s: set value %s", self._host, self._ioid, value
         )
@@ -107,7 +107,7 @@ class AceproNumber(NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         """Send value to the ACEPRO module."""
-        self.set_value(value)
+        self._send_value(value)
 
     # ------------------------------------------------------------------
     # Value update callback
