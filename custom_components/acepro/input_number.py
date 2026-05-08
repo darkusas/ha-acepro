@@ -127,7 +127,11 @@ class AceproInputNumber(NumberEntity):
         self._client.send_value(self._host, self._ioid, value)
 
     async def async_set_native_value(self, value: float) -> None:
-        """Send value to the ACEPRO module."""
+        """Send value to the ACEPRO module (called via number.set_value service)."""
+        self._send_value(value)
+
+    async def async_set_value(self, value: float) -> None:
+        """Send value to the ACEPRO module (called via input_number.set_value service)."""
         self._send_value(value)
 
     # ------------------------------------------------------------------
