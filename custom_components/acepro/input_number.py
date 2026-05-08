@@ -120,7 +120,7 @@ class AceproInputNumber(NumberEntity):
     # ------------------------------------------------------------------
     
     def _send_value(self, value: float) -> None:
-        """Send value to the ACEPRO module."""
+        """Internal helper to send value to the ACEPRO module."""
         _LOGGER.debug(
             "ACEPRO input_number %s/%s: set value %s", self._host, self._ioid, value
         )
